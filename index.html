@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title></title>
+</head>
+<body>
+<nav id="practical-nav"></nav>
+<p><span id="counter"></span></p>
+<p id="status"></p>
+<button type="button" id="copy-button" hidden>COPY CODE</button>
+<pre><code id="code"></code></pre>
+<p id="copy-status"></p>
+<script>
+const PRACTICALS = [
+`McCulloch Pitts
+
+x1,x2=0,1
+w1,w2=1,1
+and_th=2
+and_sum = x1*w1 + x2*w2
+if and_sum >= and_th:
+    print("AND OUTPUT:",1)
+else:
+    print("AND OUTPUT:",0)
+
+or_th = 1
+or_sum = x1*w1 + x2*w2
+if or_sum >= or_th:
+    print("OR OUTPUT:",1)
+else:
+    print("OR OUTPUTL",0)
+
+x1 = 0
+w1 = -1
+not_th = 0
+nt = x1*w1
+if nt >= not_th:
+    print("NOT OUTPUT:",1)
+else:
+    print("NOT OUTPUT:",0)
+`,
+`Hebb's Rule
+
+lr = 0.1
+x = 1
+y = 1
+o_w = 2
+d_w = lr*x*y
+n_w = o_w + d_w
+print("Old Weights:",o_w)
+print("New Wrights:",n_w)
+`,
+`Kohonen SOM (Self Organizing Map)
+
+from minisom import MiniSom
+import numpy as np
+
+data = np.array([[1,1],[1,0],[0,0],[0,1]])
+
+som = MiniSom(5,5,2,sigma=1.0,learning_rate=0.5)
+
+som.random_weights_init(data)
+som.train(data,100)
+
+print("Winner for [1,1]: ",tuple(map(int,som.winner([1,1]))))
+`,
+`Hamming Network Exemplar vectors
+
+import numpy as np
+
+A = np.array([1,-1,1,-1])
+B = np.array([-1,1,1,-1])
+C = np.array([1,-1,-1,1])
+
+exem = [A,B,C]
+
+input_ = np.array([1,-1,1,-1])
+b = 0.5*4
+
+mult1 = np.dot(input_,A) + b
+mult2 = np.dot(input_,B) + b
+mult3 = np.dot(input_,C) + b
+
+summ = np.array([mult1,mult2,mult3])
+
+winner = np.argmax(summ)
+
+print(exem[winner])
+`,
+`BAM Network
+
+from bamnet import BAM
+import numpy as np
+
+X = np.array([[1,1,-1],[-1,-1,1]])
+Y = np.array([[1,-1,1],[-1,1,-1]])
+
+bam = BAM()
+
+bam.train(X,Y)
+print(bam.recall_Y(X[0]))
+print(bam.recall_X(Y[1]))
+`,
+`Winning Nueron using MaxNet
+
+from maxnetlib import MaxNet
+
+maxnet = MaxNet()
+inputs = [0.5,0.2,0.8,0.1]
+winner=maxnet.run(inputs)
+print(inputs)
+print(winner)
+print(inputs[winner])
+`,
+`Demorgan Laws
+
+from demorgan import de_morgan
+
+de_morgan(1,0)
+de_morgan(1,1)
+de_morgan(0,1)
+de_morgan(0,0)
+`,
+`Fuzzy Operations
+
+from fuzzy_lib import fuzzy_operations
+
+A = {'x1':0.2,'x2':0.5,'x3':0.7}
+B = {'x1':0.5,'x2':0.7,'x3':0.1}
+
+results = fuzzy_operations(A,B)
+
+print("Fuzzy Set A:",A)
+print("Fuzzy Set B:",B)
+
+print("Union:",results['union'])
+print("Intersection:",results['intersection'])
+print("A Complement:",results['complement_A'])
+print("Difference:",results['difference'])
+`
+];
+
+const nav = document.getElementById("practical-nav");
+const counterEl = document.getElementById("counter");
+const statusEl = document.getElementById("status");
+const codeEl = document.getElementById("code");
+const copyButton = document.getElementById("copy-button");
+const copyStatusEl = document.getElementById("copy-status");
+
+let selectedIndex = null;
+let pressCount = 0;
+let unlocked = false;
+
+function resetState() {
+  pressCount = 0;
+  unlocked = false;
+  counterEl.textContent = "";
+  statusEl.textContent = "";
+  codeEl.textContent = "";
+  copyButton.hidden = true;
+  copyStatusEl.textContent = "";
+}
+
+function selectPractical(index) {
+  resetState();
+  selectedIndex = index;
+  statusEl.textContent = "";
+}
+
+PRACTICALS.forEach(function (source, index) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.addEventListener("click", function () {
+    selectPractical(index);
+  });
+  nav.appendChild(button);
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.code !== "Space") return;
+  if (selectedIndex === null || unlocked) return;
+
+  event.preventDefault();
+  if (event.repeat) return;
+
+  pressCount += 1;
+  counterEl.textContent = pressCount;
+
+  if (pressCount === 3) {
+    unlocked = true;
+    statusEl.textContent = "ACCESS GRANTED";
+    codeEl.textContent = PRACTICALS[selectedIndex];
+    copyButton.hidden = false;
+  }
+});
+
+copyButton.addEventListener("click", function () {
+  if (!unlocked || selectedIndex === null) return;
+
+  const selectedCode = PRACTICALS[selectedIndex];
+  copyStatusEl.textContent = "";
+
+  let writePromise;
+  try {
+    writePromise = navigator.clipboard.writeText(selectedCode);
+  } catch (error) {
+    copyStatusEl.textContent = "COPY FAILED";
+    return;
+  }
+
+  Promise.resolve(writePromise).then(function () {
+    copyStatusEl.textContent = "CODE COPIED";
+  }, function () {
+    copyStatusEl.textContent = "COPY FAILED";
+  });
+});
+</script>
+
+</body>
+</html>
